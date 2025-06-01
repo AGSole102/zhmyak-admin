@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import AuthTemplate from "./components/templates/AuthTemplate";
 import AdminLayout from "./components/templates/AdminLayout";
 import UsersPage from "./pages/UsersPage";
+import ComboCardsPage from "./pages/ComboCardsPage";
+import TasksPage from "./pages/TasksPage";
 import Button from "./components/atoms/Button";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
@@ -22,6 +24,8 @@ function AdminRoutes() {
     <AdminLayout>
       <Routes>
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/combo-cards" element={<ComboCardsPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
         <Route path="*" element={<Navigate to="/users" replace />} />
       </Routes>
     </AdminLayout>

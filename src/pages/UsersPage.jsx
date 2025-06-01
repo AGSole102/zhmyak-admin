@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../axiosinstance";
 import Button from "../components/atoms/Button";
+import { formatDateTime } from "../utils/formatDateTime";
+import UserDetailsModal from "../components/organisms/UserDetailsModal";
+import UserNotificationModal from "../components/organisms/UserNotificationModal";
 
 const initialForm = { tgid: "", login: "", password: "", role: "user", is_active: true };
 
@@ -15,7 +18,17 @@ const UsersPage = () => {
   const [economy, setEconomy] = useState(null);
   const [economyLoading, setEconomyLoading] = useState(false);
   const [economyError, setEconomyError] = useState(null);
-  const [setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showDuckState, setShowDuckState] = useState(false);
+  const [duckState, setDuckState] = useState(null);
+  const [duckStateLoading, setDuckStateLoading] = useState(false);
+  const [duckStateError, setDuckStateError] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [levelInfo, setLevelInfo] = useState(null);
+  const [levelLoading, setLevelLoading] = useState(false);
+  const [levelError, setLevelError] = useState(null);
+  const [notifUser, setNotifUser] = useState(null);
+  const [showGlobalNotif, setShowGlobalNotif] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -76,66 +89,78 @@ const UsersPage = () => {
     }
   };
 
-  const openEconomyModal = async (user) => {
+  const openUserDetails = async (user) => {
     setSelectedUser(user);
-    setShowEconomy(true);
+    setShowDetails(true);
     setEconomy(null);
-    setEconomyError(null);
+    setDuckState(null);
+    setLevelInfo(null);
     setEconomyLoading(true);
+    setDuckStateLoading(true);
+    setLevelLoading(true);
+    setEconomyError(null);
+    setDuckStateError(null);
+    setLevelError(null);
     try {
-      const { data } = await axios.get(`/eco/${user.uid}`, { params: { provider: "postgres" } });
-      setEconomy(data);
+      const [levelRes, ecoRes, duckRes] = await Promise.all([
+        axios.get(`/eco/level/${user.uid}`, { params: { provider: "redis" } }),
+        axios.get(`/eco/${user.uid}`, { params: { provider: "postgres" } }),
+        axios.get(`/eco/states/${user.uid}`)
+      ]);
+      setLevelInfo(levelRes.data);
+      setEconomy(ecoRes.data);
+      setDuckState(duckRes.data);
     } catch (e) {
+      setLevelError(e.response?.data?.detail || "Ошибка загрузки уровня пользователя");
       setEconomyError(e.response?.data?.detail || "Ошибка загрузки экономики пользователя");
+      setDuckStateError(e.response?.data?.detail || "Ошибка загрузки состояния утки");
     } finally {
+      setLevelLoading(false);
       setEconomyLoading(false);
+      setDuckStateLoading(false);
     }
   };
 
-  const closeEconomyModal = () => {
-    setShowEconomy(false);
-    setEconomy(null);
-    setEconomyError(null);
+  const closeUserDetails = () => {
+    setShowDetails(false);
     setSelectedUser(null);
+    setEconomy(null);
+    setDuckState(null);
+    setLevelInfo(null);
+    setEconomyError(null);
+    setDuckStateError(null);
+    setLevelError(null);
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Пользователи</h1>
       <div className="mb-4 flex justify-between items-center">
-        <Button onClick={openCreateModal} className="bg-blue-600 text-white">Создать пользователя</Button>
+        <div className="flex gap-2">
+          <Button onClick={openCreateModal} className="bg-blue-600 text-white">Создать пользователя</Button>
+          <Button onClick={() => setShowGlobalNotif(true)} className="bg-purple-700 text-white">Отправить уведомление</Button>
+        </div>
       </div>
       <div className="bg-white rounded shadow p-6">
         {loading && <div>Загрузка...</div>}
         {error && <div className="text-red-600 mb-4">{error}</div>}
         {!loading && !error && (
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-3">UID</th>
-                <th className="text-left py-2 px-3">Логин</th>
-                <th className="text-left py-2 px-3">Роль</th>
-                <th className="text-left py-2 px-3">TGID</th>
-                <th className="text-left py-2 px-3">Активен</th>
-                <th className="text-left py-2 px-3">Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.uid} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-3">{user.uid}</td>
-                  <td className="py-2 px-3">{user.login}</td>
-                  <td className="py-2 px-3">{user.role}</td>
-                  <td className="py-2 px-3">{user.tgid}</td>
-                  <td className="py-2 px-3">{user.is_active ? "Да" : "Нет"}</td>
-                  <td className="py-2 px-3 flex gap-2">
-                    <Button onClick={() => openEconomyModal(user)} className="bg-gray-600 text-white">Детали</Button>
-                    <Button onClick={() => handleDelete(user.uid)} className="bg-red-600 text-white">Удалить</Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {users.map((user) => (
+              <div key={user.uid} className="border rounded-lg p-4 flex flex-col gap-2 shadow hover:shadow-md transition">
+                <div className="font-bold text-lg">{user.login}</div>
+                <div className="text-sm text-gray-500">UID: {user.uid}</div>
+                <div className="text-sm">Роль: <b>{user.role}</b></div>
+                <div className="text-sm">TGID: {user.tgid}</div>
+                <div className="text-sm">Активен: {user.is_active ? "Да" : "Нет"}</div>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  <Button onClick={() => openUserDetails(user)} className="bg-blue-700 text-white">Детали</Button>
+                  <Button onClick={() => setNotifUser(user)} className="bg-purple-700 text-white">Оповещения</Button>
+                  <Button onClick={() => handleDelete(user.uid)} className="bg-red-600 text-white">Удалить</Button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
       {showModal && (
@@ -195,22 +220,23 @@ const UsersPage = () => {
           </div>
         </div>
       )}
-      {showEconomy && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onClick={closeEconomyModal}>
-          <div className="bg-white rounded shadow p-8 w-full max-w-md relative" onClick={e => e.stopPropagation()}>
-            <button onClick={closeEconomyModal} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700">×</button>
-            <h2 className="text-xl font-bold mb-4">Экономика пользователя</h2>
-            {economyLoading && <div>Загрузка...</div>}
-            {economyError && <div className="text-red-600 text-sm mb-2">{economyError}</div>}
-            {economy && (
-              <div className="flex flex-col gap-2">
-                <div><b>UID:</b> {economy.uid}</div>
-                <div><b>Монеты:</b> {economy.coins}</div>
-                <div><b>Билеты:</b> {economy.tickets}</div>
-              </div>
-            )}
-          </div>
-        </div>
+      {showDetails && (
+        <UserDetailsModal
+          open={showDetails}
+          onClose={closeUserDetails}
+          user={selectedUser}
+          levelInfo={levelInfo}
+          economy={economy}
+          duckState={duckState}
+          loading={levelLoading || economyLoading || duckStateLoading}
+          error={levelError || economyError || duckStateError}
+        />
+      )}
+      {notifUser && (
+        <UserNotificationModal open={!!notifUser} onClose={() => setNotifUser(null)} user={notifUser} />
+      )}
+      {showGlobalNotif && (
+        <UserNotificationModal open={showGlobalNotif} onClose={() => setShowGlobalNotif(false)} user={{ uid: null }} />
       )}
     </div>
   );
