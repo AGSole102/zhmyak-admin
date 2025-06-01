@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import Button from "../components/atoms/Button";
 import UpgradeCardForm from "../components/organisms/UpgradeCardForm";
 import DependencyForm from "../components/organisms/DependencyForm";
+import Modal from "../components/molecules/Modal";
 import * as api from "../services/upgradeCardsService";
+import ImageWithFallback from "../components/atoms/ImageWithFallback";
 
 const ComboCardsPage = () => {
   const [cards, setCards] = useState([]);
@@ -168,7 +170,11 @@ const ComboCardsPage = () => {
               <div className="mb-2">Цена: {card.init_price}</div>
               <div className="mb-2">{card.description}</div>
               {card.picture && (
-                <img src={"https://quackit.ru:8443/images/business/" + card.card_type + "/" + card.picture} alt={card.name["ru-RU"] || card.name} className="w-32 h-32 object-contain mb-2" />
+                <ImageWithFallback 
+                  src={"https://quackit.ru:8443/images/business/" + card.card_type + "/" + card.picture}
+                  alt={card.name["ru-RU"] || card.name}
+                  className="w-32 h-32 object-contain mb-2"
+                />
               )}
               <div className="mb-2">
                 <b>Зависимости:</b>
@@ -196,34 +202,30 @@ const ComboCardsPage = () => {
         </div>
       )}
       {/* Модалка карточки */}
-      {(showCardModal || editCard) && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onClick={() => { setShowCardModal(false); setEditCard(null); }}>
-          <div className="bg-white rounded shadow p-8 w-full max-w-lg relative" onClick={e => e.stopPropagation()}>
-            <button onClick={() => { setShowCardModal(false); setEditCard(null); }} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">×</button>
-            <h2 className="text-xl font-bold mb-4">{editCard ? "Редактировать карточку" : "Создать карточку"}</h2>
-            <UpgradeCardForm
-              initial={editCard || undefined}
-              isEdit={!!editCard}
-              onSubmit={editCard ? handleUpdateCard : handleCreateCard}
-              onCancel={() => { setShowCardModal(false); setEditCard(null); }}
-            />
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showCardModal || !!editCard}
+        onClose={() => { setShowCardModal(false); setEditCard(null); }}
+        title={editCard ? "Редактировать карточку" : "Создать карточку"}
+      >
+        <UpgradeCardForm
+          initial={editCard || undefined}
+          isEdit={!!editCard}
+          onSubmit={editCard ? handleUpdateCard : handleCreateCard}
+          onCancel={() => { setShowCardModal(false); setEditCard(null); }}
+        />
+      </Modal>
       {/* Модалка зависимости */}
-      {showDepModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onClick={() => { setShowDepModal(false); setDepCardId(null); }}>
-          <div className="bg-white rounded shadow p-8 w-full max-w-lg relative" onClick={e => e.stopPropagation()}>
-            <button onClick={() => { setShowDepModal(false); setDepCardId(null); }} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">×</button>
-            <h2 className="text-xl font-bold mb-4">Добавить зависимость</h2>
-            <DependencyForm
-              cardOptions={cards.filter(c => c.card_id !== depCardId)}
-              onSubmit={handleCreateDep}
-              onCancel={() => { setShowDepModal(false); setDepCardId(null); }}
-            />
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showDepModal}
+        onClose={() => { setShowDepModal(false); setDepCardId(null); }}
+        title="Добавить зависимость"
+      >
+        <DependencyForm
+          cardOptions={cards.filter(c => c.card_id !== depCardId)}
+          onSubmit={handleCreateDep}
+          onCancel={() => { setShowDepModal(false); setDepCardId(null); }}
+        />
+      </Modal>
       {/* Комбо */}
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-2">Текущее комбо</h2>

@@ -4,6 +4,7 @@ import Button from "../components/atoms/Button";
 import { formatDateTime } from "../utils/formatDateTime";
 import UserDetailsModal from "../components/organisms/UserDetailsModal";
 import UserNotificationModal from "../components/organisms/UserNotificationModal";
+import Modal from "../components/molecules/Modal";
 
 const initialForm = { tgid: "", login: "", password: "", role: "user", is_active: true };
 
@@ -141,85 +142,82 @@ const UsersPage = () => {
           <Button onClick={() => setShowGlobalNotif(true)} className="bg-purple-700 text-white">Отправить уведомление</Button>
         </div>
       </div>
-      <div className="bg-white rounded shadow p-6">
-        {loading && <div>Загрузка...</div>}
-        {error && <div className="text-red-600 mb-4">{error}</div>}
-        {!loading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {users.map((user) => (
-              <div key={user.uid} className="border rounded-lg p-4 flex flex-col gap-2 shadow hover:shadow-md transition">
-                <div className="font-bold text-lg">{user.login}</div>
-                <div className="text-sm text-gray-500">UID: {user.uid}</div>
-                <div className="text-sm">Роль: <b>{user.role}</b></div>
-                <div className="text-sm">TGID: {user.tgid}</div>
-                <div className="text-sm">Активен: {user.is_active ? "Да" : "Нет"}</div>
-                <div className="flex gap-2 mt-2 flex-wrap">
-                  <Button onClick={() => openUserDetails(user)} className="bg-blue-700 text-white">Детали</Button>
-                  <Button onClick={() => setNotifUser(user)} className="bg-purple-700 text-white">Оповещения</Button>
-                  <Button onClick={() => handleDelete(user.uid)} className="bg-red-600 text-white">Удалить</Button>
-                </div>
+      {loading && <div>Загрузка...</div>}
+      {error && <div className="text-red-600 mb-4">{error}</div>}
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {users.map((user) => (
+            <div key={user.uid} className="bg-white rounded shadow p-4 flex flex-col">
+              <div className="font-bold text-lg mb-2">{user.login}</div>
+              <div className="text-sm text-gray-500 mb-1">UID: {user.uid}</div>
+              <div className="text-sm mb-1">Роль: <b>{user.role}</b></div>
+              <div className="text-sm mb-1">TGID: {user.tgid}</div>
+              <div className="text-sm mb-4">Активен: {user.is_active ? "Да" : "Нет"}</div>
+              <div className="mt-auto flex gap-2 flex-wrap">
+                <Button onClick={() => openUserDetails(user)} className="bg-blue-700 text-white">Детали</Button>
+                <Button onClick={() => setNotifUser(user)} className="bg-purple-700 text-white">Оповещения</Button>
+                <Button onClick={() => handleDelete(user.uid)} className="bg-red-600 text-white">Удалить</Button>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onClick={closeModal}>
-          <div className="bg-white rounded shadow p-8 w-full max-w-md relative" onClick={e => e.stopPropagation()}>
-            <button onClick={closeModal} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700">×</button>
-            <h2 className="text-xl font-bold mb-4">Создать пользователя</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <input
-                name="login"
-                value={form.login}
-                onChange={handleChange}
-                placeholder="Логин"
-                className="border rounded px-3 py-2"
-                required
-              />
-              <input
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Пароль"
-                className="border rounded px-3 py-2"
-                required
-              />
-              <input
-                name="tgid"
-                type="number"
-                value={form.tgid}
-                onChange={handleChange}
-                placeholder="TGID"
-                className="border rounded px-3 py-2"
-              />
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="border rounded px-3 py-2"
-              >
-                <option value="user">user</option>
-                <option value="admin">admin</option>
-              </select>
-              <label className="flex items-center gap-2">
-                <input
-                  name="is_active"
-                  type="checkbox"
-                  checked={form.is_active}
-                  onChange={handleChange}
-                />
-                Активен
-              </label>
-              {modalError && <div className="text-red-600 text-sm">{modalError}</div>}
-              <Button type="submit" className="bg-blue-600 text-white mt-2">
-                Создать
-              </Button>
-            </form>
-          </div>
+            </div>
+          ))}
         </div>
       )}
+      <Modal
+        open={showModal}
+        onClose={closeModal}
+        title="Создать пользователя"
+        maxWidth="md"
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            name="login"
+            value={form.login}
+            onChange={handleChange}
+            placeholder="Логин"
+            className="border rounded px-3 py-2"
+            required
+          />
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Пароль"
+            className="border rounded px-3 py-2"
+            required
+          />
+          <input
+            name="tgid"
+            type="number"
+            value={form.tgid}
+            onChange={handleChange}
+            placeholder="TGID"
+            className="border rounded px-3 py-2"
+          />
+          <select
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            className="border rounded px-3 py-2"
+          >
+            <option value="user">user</option>
+            <option value="admin">admin</option>
+          </select>
+          <label className="flex items-center gap-2">
+            <input
+              name="is_active"
+              type="checkbox"
+              checked={form.is_active}
+              onChange={handleChange}
+            />
+            Активен
+          </label>
+          {modalError && <div className="text-red-600 text-sm">{modalError}</div>}
+          <Button type="submit" className="bg-blue-600 text-white mt-2">
+            Создать
+          </Button>
+        </form>
+      </Modal>
       {showDetails && (
         <UserDetailsModal
           open={showDetails}

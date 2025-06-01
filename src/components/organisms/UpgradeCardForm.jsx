@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ImageWithFallback from "../atoms/ImageWithFallback";
 
 const initialState = {
   card_id: "",
@@ -16,13 +17,13 @@ const cardTypes = ["Business", "Estate", "Offers"];
 const UpgradeCardForm = ({ initial = initialState, onSubmit, onCancel, isEdit = false }) => {
   const [form, setForm] = useState(initial);
   const [error, setError] = useState(null);
-  const [preview, setPreview] = useState(form.picture ? `/images/cards/${form.picture}` : "");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
     if (name === "picture" && files && files[0]) {
       setForm((prev) => ({ ...prev, picture: files[0].name }));
-      setPreview(URL.createObjectURL(files[0]));
+      setSelectedFile(URL.createObjectURL(files[0]));
     } else if (name.startsWith("name.")) {
       const lang = name.split(".")[1];
       setForm((prev) => ({ ...prev, name: { ...prev.name, [lang]: value } }));
@@ -39,6 +40,41 @@ const UpgradeCardForm = ({ initial = initialState, onSubmit, onCancel, isEdit = 
     }
     setError(null);
     onSubmit(form);
+  };
+
+  // Очищаем URL объекта при размонтировании компонента
+  React.useEffect(() => {
+    return () => {
+      if (selectedFile) {
+        URL.revokeObjectURL(selectedFile);
+      }
+    };
+  }, [selectedFile]);
+
+  const renderPreview = () => {
+    if (selectedFile) {
+      // Показываем превью выбранного файла
+      return (
+        <ImageWithFallback
+          src={selectedFile}
+          alt="preview"
+          className="w-24 h-24 object-contain mt-2 border"
+        />
+      );
+    } else if (isEdit && form.picture) {
+      // В режиме редактирования показываем существующую картинку
+      const imageUrl = form.picture.startsWith("http") 
+        ? form.picture 
+        : `https://quackit.ru:8443/images/business/${form.card_type}/${form.picture}`;
+      return (
+        <ImageWithFallback
+          src={imageUrl}
+          alt="current"
+          className="w-24 h-24 object-contain mt-2 border"
+        />
+      );
+    }
+    return null;
   };
 
   return (
@@ -108,12 +144,7 @@ const UpgradeCardForm = ({ initial = initialState, onSubmit, onCancel, isEdit = 
           onChange={handleChange}
           className="border rounded px-3 py-2"
         />
-        {preview && (
-          <img src={preview} alt="preview" className="w-24 h-24 object-contain mt-2 border" />
-        )}
-        {form.picture && typeof form.picture === "string" && !preview && (
-          <img src={`/images/cards/${form.picture}`} alt="preview" className="w-24 h-24 object-contain mt-2 border" />
-        )}
+        {renderPreview()}
       </label>
       <label className="flex flex-col gap-1">
         Порядок
@@ -158,4 +189,4 @@ const UpgradeCardForm = ({ initial = initialState, onSubmit, onCancel, isEdit = 
   );
 };
 
-export default UpgradeCardForm; 
+export default UpgradeCardForm;

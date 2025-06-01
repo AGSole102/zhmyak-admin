@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { formatDateTime } from "../../utils/formatDateTime";
 import UserReferralModal from "./UserReferralModal";
+import Modal from "../molecules/Modal";
 
 const UserDetailsModal = ({ open, onClose, user, levelInfo, economy, duckState, loading, error }) => {
   const [showReferral, setShowReferral] = useState(false);
-  if (!open) return null;
-
+  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded shadow p-8 w-full max-w-lg relative" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">×</button>
-        <h2 className="text-xl font-bold mb-4">Детали пользователя</h2>
+    <>
+      <Modal
+        open={open}
+        onClose={onClose}
+        title="Детали пользователя"
+      >
         {loading && <div>Загрузка...</div>}
         {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
         {user && (
@@ -49,11 +51,11 @@ const UserDetailsModal = ({ open, onClose, user, levelInfo, economy, duckState, 
             <div><b>Следующее обновление счастья:</b> {formatDateTime(duckState.next_happiness_update)}</div>
           </div>
         )}
-        {showReferral && (
-          <UserReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
-        )}
-      </div>
-    </div>
+      </Modal>
+      {showReferral && (
+        <UserReferralModal open={showReferral} onClose={() => setShowReferral(false)} user={user} />
+      )}
+    </>
   );
 };
 
