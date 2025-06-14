@@ -22,7 +22,10 @@ export const getDependency = (card_id, provider = "postgres") =>
   axios.get(`/upgrades/dependencies/${card_id}`, { params: { provider } });
 
 export const createDependency = (card_id, data, provider = "postgres") =>
-  axios.post(`/upgrades/dependencies/${card_id}`, data, { params: { provider } });
+  axios.post(`/upgrades/dependencies/${card_id}`, { ...data, card_id }, { params: { provider } });
+
+export const deleteDependency = (card_id, depends_on, provider = "postgres") =>
+  axios.delete(`/upgrades/dependencies/${card_id}`, { params: { depends_on, provider } });
 
 export const getCombo = () => axios.get("/upgrades/combo");
 export const createCombo = (data) => axios.post("/upgrades/combo", data);
@@ -53,7 +56,10 @@ export const generateReferralCodes = () =>
 
 // Tasks API
 export const getTasks = () => axios.get("/tasks/");
-export const createTask = (data) => axios.post("/tasks/", data);
+export const createTask = (data, multipart = false) =>
+  multipart
+    ? axios.post("/tasks/", data, { headers: { "Content-Type": "multipart/form-data" } })
+    : axios.post("/tasks/", data);
 export const getUserTasks = (uid) => axios.get("/tasks/user", { params: { uid } });
 export const deleteTask = (task_id) => axios.delete(`/tasks/${task_id}`);
 export const updateTaskStatus = (task_id, uid, provider = "postgres") => axios.put(`/tasks/${task_id}/status`, null, { params: { uid, provider } });

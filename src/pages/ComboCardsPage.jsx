@@ -1,84 +1,47 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Button from "../components/atoms/Button";
+import Modal from "../components/molecules/Modal";
 import UpgradeCardForm from "../components/organisms/UpgradeCardForm";
 import DependencyForm from "../components/organisms/DependencyForm";
-import Modal from "../components/molecules/Modal";
-import * as api from "../services/upgradeCardsService";
-import ImageWithFallback from "../components/atoms/ImageWithFallback";
+import UpgradeCardList from "../components/organisms/UpgradeCardList";
+import { useUpgradeCardsData } from "../hooks/useUpgradeCardsData";
 
 const ComboCardsPage = () => {
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dependencies, setDependencies] = useState([]);
-  const [depLoading, setDepLoading] = useState(false);
-  const [depError, setDepError] = useState(null);
+  const {
+    cards,
+    dependencies,
+    loading,
+    error,
+    combo,
+    comboLoading,
+    comboError,
+    comboStatus,
+    comboCompletion,
+    comboCompletionLoading,
+    comboCompletionError,
+    fetchAllData,
+    fetchComboCompletion,
+    createCard,
+    updateCard,
+    deleteCard,
+    createDep,
+    deleteDep,
+  } = useUpgradeCardsData();
+
   const [showCardModal, setShowCardModal] = useState(false);
   const [editCard, setEditCard] = useState(null);
   const [showDepModal, setShowDepModal] = useState(false);
   const [depCardId, setDepCardId] = useState(null);
-  const [editDep, setEditDep] = useState(null);
-  const [combo, setCombo] = useState([]);
-  const [comboLoading, setComboLoading] = useState(false);
-  const [comboError, setComboError] = useState(null);
   const [comboForm, setComboForm] = useState({ card1: "", card2: "", card3: "" });
-  const [comboStatus, setComboStatus] = useState("");
-  const [comboCompletion, setComboCompletion] = useState(null);
   const [comboCompletionUid, setComboCompletionUid] = useState("");
-  const [comboCompletionLoading, setComboCompletionLoading] = useState(false);
-  const [comboCompletionError, setComboCompletionError] = useState(null);
-
-  useEffect(() => {
-    fetchAll();
-    fetchCombo();
-    fetchComboStatus();
-  }, []);
-
-  const fetchAll = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [cardsRes, depsRes] = await Promise.all([
-        api.getUpgrades(),
-        api.getDependencies(),
-      ]);
-      setCards(cardsRes.data);
-      setDependencies(depsRes.data);
-    } catch (e) {
-      setError(e.response?.data?.detail || "Ошибка загрузки данных");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCombo = async () => {
-    setComboLoading(true);
-    setComboError(null);
-    try {
-      const { data } = await api.getCombo();
-      setCombo(data);
-    } catch (e) {
-      setComboError(e.response?.data?.detail || "Ошибка загрузки комбо");
-    } finally {
-      setComboLoading(false);
-    }
-  };
-
-  const fetchComboStatus = async () => {
-    try {
-      const { data } = await api.getComboStatus();
-      setComboStatus(data);
-    } catch {}
-  };
 
   const getCardDependencies = (card_id) => dependencies.filter((d) => d.card_id === card_id);
 
   // --- CRUD карточек ---
   const handleCreateCard = async (form) => {
     try {
-      await api.createUpgrade(form);
+      await createCard(form);
       setShowCardModal(false);
-      fetchAll();
     } catch (e) {
       alert(e.response?.data?.detail || "Ошибка создания карточки");
     }
@@ -89,10 +52,9 @@ const ComboCardsPage = () => {
   };
   const handleUpdateCard = async (form) => {
     try {
-      await api.updateUpgrade(form.card_id, form);
+      await updateCard(form);
       setShowCardModal(false);
       setEditCard(null);
-      fetchAll();
     } catch (e) {
       alert(e.response?.data?.detail || "Ошибка обновления карточки");
     }
@@ -100,8 +62,7 @@ const ComboCardsPage = () => {
   const handleDeleteCard = async (card_id) => {
     if (!window.confirm("Удалить карточку?")) return;
     try {
-      await api.deleteUpgrade(card_id);
-      fetchAll();
+      await deleteCard(card_id);
     } catch (e) {
       alert(e.response?.data?.detail || "Ошибка удаления карточки");
     }
@@ -109,18 +70,23 @@ const ComboCardsPage = () => {
   // --- CRUD зависимостей ---
   const handleAddDep = (card_id) => {
     setDepCardId(card_id);
-    setEditDep(null);
     setShowDepModal(true);
   };
   const handleCreateDep = async (form) => {
     try {
-      const { dependency_type, depends_on, level, friend_count } = form;
-      await api.createDependency(depCardId, { dependency_type, depends_on, level, friend_count });
+      await createDep(depCardId, form);
       setShowDepModal(false);
       setDepCardId(null);
-      fetchAll();
     } catch (e) {
       alert(e.response?.data?.detail || "Ошибка создания зависимости");
+    }
+  };
+  const handleDeleteDep = async (card_id, depends_on) => {
+    if (!window.confirm("Удалить зависимость?")) return;
+    try {
+      await deleteDep(card_id, depends_on);
+    } catch (e) {
+      alert(e.response?.data?.detail || "Ошибка удаления зависимости");
     }
   };
   // --- Комбо ---
@@ -130,27 +96,13 @@ const ComboCardsPage = () => {
   };
   const handleCreateCombo = async (e) => {
     e.preventDefault();
-    try {
-      await api.createCombo(comboForm);
-      fetchCombo();
-      fetchComboStatus();
-    } catch (e) {
-      alert(e.response?.data?.detail || "Ошибка создания комбо");
-    }
+    // TODO: реализовать createCombo через useUpgradeCardsData если потребуется
+    // await createCombo(comboForm);
+    fetchAllData();
   };
   const handleComboCompletion = async (e) => {
     e.preventDefault();
-    setComboCompletionLoading(true);
-    setComboCompletionError(null);
-    setComboCompletion(null);
-    try {
-      const { data } = await api.getComboCompletion(comboCompletionUid);
-      setComboCompletion(data);
-    } catch (e) {
-      setComboCompletionError(e.response?.data?.detail || "Ошибка загрузки combo_completion");
-    } finally {
-      setComboCompletionLoading(false);
-    }
+    fetchComboCompletion(comboCompletionUid);
   };
 
   return (
@@ -162,44 +114,17 @@ const ComboCardsPage = () => {
       {loading && <div>Загрузка...</div>}
       {error && <div className="text-red-600 mb-4">{error}</div>}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cards.map((card) => (
-            <div key={card.card_id} className="bg-white rounded shadow p-4 flex flex-col">
-              <div className="font-bold text-lg mb-2">{card.name["ru-RU"] || card.name}</div>
-              <div className="mb-2 text-sm text-gray-500">Тип: {card.card_type}</div>
-              <div className="mb-2">Цена: {card.init_price}</div>
-              <div className="mb-2">{card.description}</div>
-              {card.picture && (
-                <ImageWithFallback 
-                  src={"https://quackit.ru:8443/images/business/" + card.card_type + "/" + card.picture}
-                  alt={card.name["ru-RU"] || card.name}
-                  className="w-32 h-32 object-contain mb-2"
-                />
-              )}
-              <div className="mb-2">
-                <b>Зависимости:</b>
-                {depLoading ? (
-                  <span>Загрузка...</span>
-                ) : (
-                  <ul className="list-disc ml-5">
-                    {getCardDependencies(card.card_id).length === 0 && <li>Нет</li>}
-                    {getCardDependencies(card.card_id).map((dep, idx) => (
-                      <li key={idx}>
-                        {dep.depends_on} (уровень: {dep.level})
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {depError && <div className="text-red-600 text-xs">{depError}</div>}
-              </div>
-              <div className="mt-auto flex gap-2 flex-wrap">
-                <Button onClick={() => handleEditCard(card)} className="bg-yellow-500 text-white">Редактировать</Button>
-                <Button onClick={() => handleDeleteCard(card.card_id)} className="bg-red-600 text-white">Удалить</Button>
-                <Button onClick={() => handleAddDep(card.card_id)} className="bg-green-600 text-white">Добавить зависимость</Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <UpgradeCardList
+          cards={cards}
+          dependencies={dependencies}
+          depLoading={false}
+          depError={null}
+          onEdit={handleEditCard}
+          onDelete={handleDeleteCard}
+          onAddDep={handleAddDep}
+          onDeleteDep={handleDeleteDep}
+          getCardDependencies={getCardDependencies}
+        />
       )}
       {/* Модалка карточки */}
       <Modal
@@ -226,7 +151,7 @@ const ComboCardsPage = () => {
           onCancel={() => { setShowDepModal(false); setDepCardId(null); }}
         />
       </Modal>
-      {/* Комбо */}
+      {/* Комбо блок */}
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-2">Текущее комбо</h2>
         {comboLoading && <div>Загрузка...</div>}

@@ -1,0 +1,8 @@
+{
+  "openapi": {
+    "source": "https://api.quackit.ru:4443/docs.json",
+    "enabled": true,
+    "autoRefresh": true,
+    "headers": {}
+  }
+} 

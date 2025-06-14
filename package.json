@@ -11,6 +11,9 @@
     "pinggy": "ssh -p 443 -R0:localhost:5173 -L4300:127.0.0.1:4300 -o StrictHostKeyChecking=no j4xKfl4M1lv@a.pinggy.io"
   },
   "dependencies": {
+    "@angular/common": "^20.0.3",
+    "@angular/core": "^20.0.3",
+    "@angular/platform-browser": "^20.0.3",
     "@reduxjs/toolkit": "^2.5.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.7.9",
@@ -19,7 +22,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.0.2"
+    "react-router-dom": "^7.0.2",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
