@@ -40,7 +40,7 @@ const UserReferralModal = ({ open, onClose, user }) => {
             value={selectedLevel} 
             onChange={setSelectedLevel}
           />
-        </div>
+          </div>
         
         <ReferralTable 
           referrals={referralsData}

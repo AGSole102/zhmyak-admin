@@ -7,6 +7,12 @@ import ComboCardsPage from "./pages/ComboCardsPage";
 import TasksPage from "./pages/TasksPage";
 import Button from "./components/atoms/Button";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import BusinessAccountsPage from "./pages/BusinessAccountsPage";
+import MarketplaceCardsPage from "./pages/MarketplaceCardsPage";
+import CategoriesPage from "./pages/CategoriesPage";
+import BusinessDashboardPage from "./pages/BusinessDashboardPage";
+import BusinessCardsPage from "./pages/BusinessCardsPage";
+import BusinessLayout from "./components/templates/BusinessLayout";
 import "./App.css";
 
 function NoAccess() {
@@ -24,11 +30,26 @@ function AdminRoutes() {
     <AdminLayout>
       <Routes>
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/business-accounts" element={<BusinessAccountsPage />} />
+        <Route path="/marketplace-cards" element={<MarketplaceCardsPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/combo-cards" element={<ComboCardsPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="*" element={<Navigate to="/users" replace />} />
       </Routes>
     </AdminLayout>
+  );
+}
+
+function BusinessRoutes() {
+  return (
+    <BusinessLayout>
+      <Routes>
+        <Route path="/dashboard" element={<BusinessDashboardPage />} />
+        <Route path="/my-cards" element={<BusinessCardsPage />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BusinessLayout>
   );
 }
 
@@ -39,6 +60,9 @@ function AppContent() {
   }
   if (role === "admin") {
     return <AdminRoutes />;
+  }
+  if (role === "business") {
+    return <BusinessRoutes />;
   }
   return <NoAccess />;
 }

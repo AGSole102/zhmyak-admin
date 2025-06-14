@@ -24,6 +24,30 @@ const Sidebar = ({ open = true, onClose }) => (
           Пользователи
         </NavLink>
         <NavLink
+          to="/business-accounts"
+          className={({ isActive }) =>
+            `px-3 py-2 rounded hover:bg-gray-700 ${isActive ? 'bg-gray-700' : ''}`
+          }
+        >
+          Бизнес-аккаунты
+        </NavLink>
+        <NavLink
+          to="/marketplace-cards"
+          className={({ isActive }) =>
+            `px-3 py-2 rounded hover:bg-gray-700 ${isActive ? 'bg-gray-700' : ''}`
+          }
+        >
+          Карточки маркетплейса
+        </NavLink>
+        <NavLink
+          to="/categories"
+          className={({ isActive }) =>
+            `px-3 py-2 rounded hover:bg-gray-700 ${isActive ? 'bg-gray-700' : ''}`
+          }
+        >
+          Категории товаров
+        </NavLink>
+        <NavLink
           to="/combo-cards"
           className={({ isActive }) =>
             `px-3 py-2 rounded hover:bg-gray-700 ${isActive ? 'bg-gray-700' : ''}`
