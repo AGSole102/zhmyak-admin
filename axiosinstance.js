@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: 'https://api.quackit.ru:4443',
+  baseURL: 'https://api.quackit.ru:443',
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error);
       }
       try {
-        const { data } = await axios.post('https://api.quackit.ru:4443/auth/refresh', { refresh_token: refreshToken });
+        const { data } = await axios.post('https://api.quackit.ru:443/auth/refresh', { refresh_token: refreshToken });
         localStorage.setItem('access_token', data.access_token);
         isRefreshing = false;
         processQueue(null, data.access_token);
